@@ -141,7 +141,10 @@ function salah_recorder_scripts() {
 	wp_enqueue_style( 'salah-recorder-style', get_stylesheet_uri(), array(), _S_VERSION );
 	wp_style_add_data( 'salah-recorder-style', 'rtl', 'replace' );
 
-	wp_enqueue_script( 'salah-recorder-navigation', get_template_directory_uri() . '/js/navigation.js', array(), _S_VERSION, true );
+	 wp_enqueue_script( 'jquery' );
+
+	wp_enqueue_script( 'salah-recorder-navigation', get_template_directory_uri() . '/js/navigation.js', array('jquery'), _S_VERSION, true );
+	wp_enqueue_script( 'salah-recorder-site-scripts', get_template_directory_uri() . '/js/site-scripts.js', array('jquery'), _S_VERSION, true );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
@@ -176,3 +179,76 @@ if ( defined( 'JETPACK__VERSION' ) ) {
 	require get_template_directory() . '/inc/jetpack.php';
 }
 
+
+
+add_action('init','create_account');
+function create_account(){
+	// Data passed by submitting the form
+	$user = ( isset($_POST['uname']) ? $_POST['uname'] : '' );
+	$pass = ( isset($_POST['upass']) ? $_POST['upass'] : '' );
+	$email = ( isset($_POST['uemail']) ? $_POST['uemail'] : '' );
+	$form_type = ( isset($_POST['form-type']) ? $_POST['form-type'] : '' );
+
+
+	if($form_type == 'register'){
+		var_dump("register");
+
+		if(($user != '') && ($email != '') && ($pass != '')){
+			if ( !username_exists( $user )  && !email_exists( $email ) ) {
+				$user_id = wp_create_user( $user, $pass, $email );
+				if( !is_wp_error($user_id) ) {
+					// Create a new user in the database with role of Contributor
+					$user = new WP_User( $user_id );
+					$user->set_role( 'contributor' );
+
+					// Create a cookie to save that user has been registered so now we can display the login form instead of register form
+					// $cookie_name = "user_status";
+					// $cookie_value = "Registered";
+					// setcookie($cookie_name, $cookie_value, time() + (86400 * 30), "/"); 
+					
+					// Redirect to new page
+					// wp_redirect( home_url() );
+
+					wp_set_current_user($user_id);
+					wp_set_auth_cookie($user_id);
+					wp_redirect( home_url() );
+					exit();
+					
+				} else {
+					// $user_id is a WP_Error object. Manage the error
+					// Create a cookie to save that user has been registered so now we can display the login form instead of register form
+					
+				}
+			} else {
+
+				$cookie_name = "user_status";
+				$cookie_value = "Already registered user";
+				setcookie($cookie_name, $cookie_value, time() + (86400 * 30), "/"); 
+			}
+		}
+	} else if($form_type == 'login'){{
+		var_dump("login if");
+		// if(username_exists($user)){
+			$current_login_status = wp_authenticate($email, $pass);
+			// echo "<pre>";
+			// var_dump(wp_authenticate($email, $pass));
+			// echo "</pre>";
+			var_dump($current_login_status->data->ID);
+			if(!$current_login_status->errors){
+				wp_set_current_user($current_login_status->data->ID);
+				wp_set_auth_cookie($current_login_status->data->ID);
+				wp_redirect( home_url() );
+				exit();
+			} 
+		// }
+	}
+	}
+}
+
+
+// Logout redirect to home page
+add_action('wp_logout','auto_redirect_after_logout');
+function auto_redirect_after_logout(){
+  wp_safe_redirect( home_url() );
+  exit;
+}
