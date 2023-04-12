@@ -95,11 +95,49 @@ if($current_user_status == null){
 	<div class="current-salah-status-container <?php echo $salah_status_visibility_class; ?>">
 		<h1>See your Salah Records here</h1>
 
+		<h3>Salah record for date: <?php echo date('l, F j, Y'); ?></h3>
+
 		<div class="current-salah-results">
-			<button type="button" class="button button-secondary" data-toggle="0">
+			<?php
+
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'salahs';
+
+		$userid =  wp_get_current_user()->id; // replace with the user ID you want to retrieve values for
+
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT salah_status, salah_number FROM $table_name WHERE userid = %d",
+				$userid
+			)
+		);
+
+		if ( ! empty( $results ) ) {
+			foreach ( $results as $result ) {
+				$salah_status = $result->salah_status;
+				$salah_number = $result->salah_number;
+		?>
+			<button type="button" class="button salah-click-element-button" data-toggle="<?php echo $salah_status; ?>"
+				data-position="<?php echo $salah_number; ?>">
 				<span class="dashicons dashicons-yes-alt"></span>
 			</button>
+			<?php	}
+		}
+
+		?>
+
+
 		</div>
+	</div>
+	<div class="lds-roller">
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
+		<div></div>
 	</div>
 
 

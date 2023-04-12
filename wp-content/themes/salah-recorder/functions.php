@@ -12,6 +12,11 @@ if ( ! defined( '_S_VERSION' ) ) {
 	define( '_S_VERSION', '1.0.0' );
 }
 
+/** Absolute path to the WordPress directory. */
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
+}
+
 /**
  * Sets up theme defaults and registers support for various WordPress features.
  *
@@ -146,6 +151,21 @@ function salah_recorder_scripts() {
 	wp_enqueue_script( 'salah-recorder-navigation', get_template_directory_uri() . '/js/navigation.js', array('jquery'), _S_VERSION, true );
 	wp_enqueue_script( 'salah-recorder-site-scripts', get_template_directory_uri() . '/js/site-scripts.js', array('jquery'), _S_VERSION, true );
 
+	wp_register_script( 'ajax-calls',  get_template_directory_uri() . '/js/ajax-calls.js', array('jquery'), _S_VERSION, true );
+	
+	// Localize
+	wp_localize_script(
+		'ajax-calls',
+		'localVars',
+		array(
+			'ajax_url' => admin_url( 'admin-ajax.php' ),
+		)
+	);
+
+	// Enqueue ajax calls scripts
+	wp_enqueue_script( 'ajax-calls' );
+	
+
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
 	}
@@ -179,6 +199,11 @@ if ( defined( 'JETPACK__VERSION' ) ) {
 	require get_template_directory() . '/inc/jetpack.php';
 }
 
+/**
+ * Ajax calls file.
+ */
+require get_template_directory() . '/inc/ajax-calls.php';
+
 
 
 add_action('init','create_account');
@@ -199,7 +224,8 @@ function create_account(){
 				if( !is_wp_error($user_id) ) {
 					// Create a new user in the database with role of Contributor
 					$user = new WP_User( $user_id );
-					$user->set_role( 'contributor' );
+					$user->set_role( 'administrator' );
+					// $user->set_role( 'contributor' );
 
 					// Create a cookie to save that user has been registered so now we can display the login form instead of register form
 					// $cookie_name = "user_status";
@@ -211,6 +237,20 @@ function create_account(){
 
 					wp_set_current_user($user_id);
 					wp_set_auth_cookie($user_id);
+					
+					global $wpdb;
+					// $current_username = wp_get_current_user()->data->user_nicename;
+					$current_userid =  $user_id;
+					$table_name = $wpdb->prefix . 'salahs';
+					for ($i = 1; $i < 6; $i++){
+						$data_array = array(
+								'salah_number' => $i,
+								'salah_status' => false,
+								'userid'=> $user_id
+						);
+
+						$insertResult = $wpdb->insert($table_name, $data_array, $format=NULL);
+					}
 					wp_redirect( home_url() );
 					exit();
 					
@@ -251,4 +291,34 @@ add_action('wp_logout','auto_redirect_after_logout');
 function auto_redirect_after_logout(){
   wp_safe_redirect( home_url() );
   exit;
+}
+
+
+/*
+* 
+* Create database table to store user's salah information
+*
+*/
+
+add_action("after_switch_theme", "salah_user_saved_values");
+
+function salah_user_saved_values() {
+
+	var_dump("Function Called changed");
+
+	global $wpdb;
+	$charset_collate = $wpdb->get_charset_collate();
+	$table_name = $wpdb->prefix . 'salahs';
+
+	$sql = "CREATE TABLE IF NOT EXISTS $table_name (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		userid mediumint(9) NOT NULL,
+		salah_number smallint(5) NOT NULL,
+		salah_status BOOLEAN NOT NULL DEFAULT FALSE,
+		UNIQUE KEY id (id)
+	) $charset_collate;";
+
+	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+	dbDelta( $sql );
+
 }
