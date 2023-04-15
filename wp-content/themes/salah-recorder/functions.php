@@ -207,188 +207,43 @@ require get_template_directory() . '/inc/ajax-calls.php';
 
 
 
-// add_action('init','create_account');
-function create_account(){
-	// Data passed by submitting the form
-	$user = ( isset($_POST['uname']) ? $_POST['uname'] : '' );
-	$pass = ( isset($_POST['upass']) ? $_POST['upass'] : '' );
-	$email = ( isset($_POST['uemail']) ? $_POST['uemail'] : '' );
-	$form_type = ( isset($_POST['form-type']) ? $_POST['form-type'] : '' );
-
-	// var_dump($user);
-
-	if($form_type == 'register'){
-
-		if(($user != '') && ($email != '') && ($pass != '')){
-			if ( !username_exists( $user )  && !email_exists( $email ) ) {
-				$user_id = wp_create_user( $user, $pass, $email );
-				if( !is_wp_error($user_id) ) {
-					// Create a new user in the database with role of Contributor
-					$user = new WP_User( $user_id );
-					$user->set_role( 'administrator' );
-					// $user->set_role( 'contributor' );
-
-					// Create a cookie to save that user has been registered so now we can display the login form instead of register form
-					$cookie_name = "user_status";
-					$cookie_value = "Registered";
-					setcookie($cookie_name, $cookie_value, time() + (86400 * 30), "/"); 
-					
-					// Redirect to new page
-					// wp_redirect( home_url() );
-
-					wp_set_current_user($user_id);
-					wp_set_auth_cookie($user_id);
-
-					global $wpdb;
-					// $table_name = $wpdb->prefix . 'salahs';
-					// // $user_id = $user->ID;
-					// date_default_timezone_set('Asia/Karachi'); // Set your timezone here
-					// $current_time = current_time('mysql');
-
-
-					// $wpdb->update(
-					// 	$table_name,
-					// 	array('last_login' => $current_time),
-					// 	array('userid' => $user_id),
-					// 	array('%s'),
-					// 	array('%d')
-					// );
-					
-					// $current_username = wp_get_current_user()->data->user_nicename;
-					$current_userid =  $user_id;
-					$table_name = $wpdb->prefix . 'salahs';
-					for ($i = 1; $i < 6; $i++){
-						date_default_timezone_set('Asia/Karachi');
-						$data_array = array(
-								'salah_number' => $i,
-								'salah_status' => false,
-								'userid'=> $user_id,
-								'last_login' => current_time('mysql')
-						);
-
-						$insertResult = $wpdb->insert($table_name, $data_array, $format=NULL);
-					}
-					wp_redirect( home_url() );
-					// exit();
-					
-				} else {
-					// $user_id is a WP_Error object. Manage the error
-					// Create a cookie to save that user has been registered so now we can display the login form instead of register form
-					
-				}
-			} else {
-
-				$cookie_name = "user_status";
-				$cookie_value = "Already registered user";
-				setcookie($cookie_name, $cookie_value, time() + (86400 * 30), "/"); 
-			}
-		}
-	} else if($form_type == 'login'){
-		// if(username_exists($user)){
-			$current_login_status = wp_authenticate($email, $pass);
-			if(!$current_login_status->errors){
-				wp_set_current_user($current_login_status->data->ID);
-				wp_set_auth_cookie($current_login_status->data->ID);
-
-				// global $wpdb;
-				// $table_name = $wpdb->prefix . 'salahs';
-				$user_id = $current_login_status->data->ID;
-				// date_default_timezone_set('Asia/Karachi'); // Set your timezone here
-
-				// $current_time = current_time('mysql');
-
-				// $wpdb->update(
-				// 	$table_name,
-				// 	array('last_login' => $current_time),
-				// 	array('userid' => $user_id),
-				// 	array('%s'),
-				// 	array('%d')
-				// );
-				
-				// global $wpdb;
-				// $table_name = $wpdb->prefix . 'salahs';
-				// $last_login = $wpdb->get_var(
-				// 	$wpdb->prepare(
-				// 		"SELECT last_login FROM $table_name WHERE userid = %d AND salah_number = 1",
-				// 		$user_id
-				// 	)
-				// );
-
-				// var_dump($last_login);
-
-				// $current_time1 = $last_login;
-				// date_default_timezone_set('Asia/Karachi');
-				// $current_time2 = current_time('mysql');
-
-				// $timestamp1 = strtotime($current_time1);
-				// $timestamp2 = strtotime($current_time2);
-
-				// $date1 = date('Y-m-d', $timestamp1);
-				// $date2 = date('Y-m-d', $timestamp2);
-
-				// if ($date1 != $date2) {
-				// 	$wpdb->update(
-				// 		$table_name,
-				// 		array('salah_status' => 0),
-				// 		array(
-				// 			'userid' => $userid,
-				// 			'salah_number BETWEEN 1 AND 5'
-				// 		)
-				// 	);
-				// } else {
-				// 	$table_name = $wpdb->prefix . 'salahs';
-				// 	$user_id = get_current_user_id();
-				// 	$current_time = current_time('mysql');
-				// 	for ($i = 1; $i <= 5; $i++) {
-				// 		$wpdb->update(
-				// 			$table_name,
-				// 			array('last_login' => $current_time),
-				// 			array('userid' => $user_id, 'salah_number' => $i),
-				// 			array('%s'),
-				// 			array('%d', '%d')
-				// 		);
-				// 	}
-				// }
-				
-				wp_redirect( home_url() );
-				// exit();
-			} else {
-				 foreach($current_login_status->errors as $error) {
-					error_log($error[0]);
-				}
-			}
-			// var_dump($current_login_status->errors);
-		// }
-	}
-	}
-
-
-
 add_action('init', 'my_custom_login_check');
 function my_custom_login_check(){
-	// Data passed by submitting the form
+	
+	/**
+	** Retrieves user input values from a POST request array and assigns them to variables with default empty string values.
+	* @return array An associative array containing user input values with keys 'user', 'pass', 'email',
+	*/
+
 	$user = ( isset($_POST['uname']) ? $_POST['uname'] : '' );
 	$pass = ( isset($_POST['upass']) ? $_POST['upass'] : '' );
 	$email = ( isset($_POST['uemail']) ? $_POST['uemail'] : '' );
 	$form_type = ( isset($_POST['form-type']) ? $_POST['form-type'] : '' );
 
-	// var_dump($form_type);
-
+	// Checks if form type is 'register'.
 	if($form_type == 'register'){
 		
-		// var_dump("Form Type => " . $form_type);
+		// Checks if user input values are not empty.
 		if(($user != '') && ($email != '') && ($pass != '')){
-			// var_dump("All conditions check");
+			// Checks if username and email do not already exist in the database.
 			if ( !username_exists( $user )  && !email_exists( $email ) ) {
-				// var_dump("Just database existance of user and email check");
+				// Creates a new WordPress user and returns the user ID.
 				$user_id = wp_create_user( $user, $pass, $email );
-				// var_dump("User ID => ".$user_id);
+				// Checks if user creation was successful.
 				if( !is_wp_error($user_id) ) {
-					// var_dump("If not wp error so successfully created new user");
+					// Sets user role to administrator and generates authentication cookies.
 					$user = new WP_User( $user_id );
 					$user->set_role( 'administrator' );
 					wp_set_current_user($user_id);
 					wp_set_auth_cookie($user_id);
+
+					/**
+				 	*
+					** Inserts default data into a custom database table for the newly created user using $wpdb object.
+					** It assigns the $user_id variable to the $current_userid variable and inserts 5 rows of data,
+					** including salah number, status, user ID, and current time as of user logged in.
+					*
+					*/
 
 					global $wpdb;
 					$current_userid =  $user_id;
@@ -409,21 +264,24 @@ function my_custom_login_check(){
 				}
 			} else {
 
+				// Sets user registration status cookie.
 				$cookie_name = "user_status";
 				$cookie_value = "Already registered user";
 				setcookie($cookie_name, $cookie_value, time() + (86400 * 30), "/"); 
 			}
 		}
+	// Checks if form type is 'login'.
 	} else if($form_type == 'login'){
-		// var_dump("Form Type => " . $form_type);
+		// Authenticates user credentials using wordpress default function because we need hash check for password
 		$current_login_status = wp_authenticate($email, $pass);
 		if(!$current_login_status->errors){
-			// var_dump("user login successfull");
+			// Sets current user and authentication cookies.
 			wp_set_current_user($current_login_status->data->ID);
 			wp_set_auth_cookie($current_login_status->data->ID);
 
 			$user_id = $current_login_status->data->ID;
 
+			// Retrieves last login time for the user from the database.
 			global $wpdb;
 			$table_name = $wpdb->prefix . 'salahs';
 			$last_login = $wpdb->get_var(
@@ -433,8 +291,12 @@ function my_custom_login_check(){
 				)
 			);
 
-			// var_dump($last_login);
-
+			/**
+			** Set timezone to Asia/Karachi and get current time in mysql format.
+			** Convert the last login time and current time to timestamp and then to date format.
+			* @param string $last_login The last login time.
+			* @return array The date in Y-m-d format for last login time and current time.
+			**/
 			$current_time1 = $last_login;
 			date_default_timezone_set('Asia/Karachi');
 			$current_time2 = current_time('mysql');
@@ -446,19 +308,9 @@ function my_custom_login_check(){
 			$date1 = date('Y-m-d', $timestamp1);
 			$date2 = date('Y-m-d', $timestamp2);
 
-			// var_dump($date1);
-			// var_dump($date2);
-
 			if ($date1 != $date2) {
-				// var_dump("Dates are not equal");
-				// $wpdb->update(
-				// 	$table_name,
-				// 	array('salah_status' => 0),
-				// 	array(
-				// 		'userid' => $user_id,
-				// 		'salah_number BETWEEN 1 AND 5'
-				// 	)
-				// );
+
+				// Updates the `salah_status` column to 0 for all the `salah_numbers` in the `salahs` table for the current user.
 				$table_name = $wpdb->prefix . 'salahs';
 				$user_id = get_current_user_id();
 				date_default_timezone_set('Australia/Sydney');
@@ -472,6 +324,10 @@ function my_custom_login_check(){
 						array('%d', '%d')
 					);
 				}
+				/**
+				** Updates the last login time for a user in the database for all five prayer times.
+				* @global wpdb $wpdb WordPress database object.
+				 */
 				$user_id = get_current_user_id();
 				$current_time = current_time('mysql');
 				for ($i = 1; $i <= 5; $i++) {
@@ -485,8 +341,8 @@ function my_custom_login_check(){
 				}
 				$wpdb->print_error();
 			} else {
-				// var_dump("Dates are equal");
 
+				// Updates the last_login column of the `salahs` table with the current time for the user currently logged in for each of the five daily prayers.
 				$table_name = $wpdb->prefix . 'salahs';
 				$user_id = get_current_user_id();
 				date_default_timezone_set('Asia/Karachi');
@@ -506,18 +362,20 @@ function my_custom_login_check(){
 
 			// exit();
 		} else {
+			// log any errors that occur during the login process to the PHP error log.
 				foreach($current_login_status->errors as $error) {
 				error_log($error[0]);
 			}
 		}
-		// var_dump($current_login_status->errors);
 		
 	}
 }
 
 
 
-// Logout redirect to home page
+/**
+** Redirects user to home page after logging out of WordPress.
+*/
 add_action('wp_logout','auto_redirect_after_logout');
 function auto_redirect_after_logout(){
   wp_safe_redirect( home_url() );
@@ -525,16 +383,19 @@ function auto_redirect_after_logout(){
 }
 
 
-/*
-* 
-* Create database table to store user's salah information
-*
+/**
+
+** Creates a new table for storing salah data using the WordPress database class.
+* @global wpdb $wpdb WordPress database class instance.
+* @param string $table_name The name of the table to create.
+* @param string $charset_collate The charset and collation of the table.
+* @param string $sql The SQL query for creating the table with specified columns and keys.
+**Includes the upgrade.php file and uses the dbDelta function to compare the SQL query to the existing table schema and modify the table accordingly.
 */
 
 add_action("after_switch_theme", "salah_user_saved_values");
 
 function salah_user_saved_values() {
-
 
 	global $wpdb;
 	$charset_collate = $wpdb->get_charset_collate();

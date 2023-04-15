@@ -23,11 +23,12 @@ if(!isset($_COOKIE[$cookie_name])) {
 	$current_user_status = $_COOKIE[$cookie_name];
 }
 
+// checks if the user is logged in 
 if(is_user_logged_in()){
 	$current_user_status = 'wp-logged-in';
 }
 
-
+// Set the visibility classes for `registration`, `login` and `salah` status container based on the current user's status.
 if($current_user_status == null){
 	$register_visibility_class = ' register-form-visible ';
 	$login_visibility_class = ' login-form-hidden ';
@@ -44,8 +45,6 @@ if($current_user_status == null){
 
 ?>
 <section id="page-section" class="page-section homepage-from">
-
-
 
 	<div id="register" class="<?php echo $register_visibility_class; ?>">
 		<h1>Please register here</h1>
@@ -99,12 +98,9 @@ if($current_user_status == null){
 
 		<div class="current-salah-results">
 			<?php
-
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'salahs';
-
 		$userid =  wp_get_current_user()->id; // replace with the user ID you want to retrieve values for
-
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT salah_status, salah_number FROM $table_name WHERE userid = %d",
