@@ -7,7 +7,7 @@
  *
  * @link https://developer.wordpress.org/themes/template-files-section/page-template-files/
  *
- * @package STEP by PGC
+ * @package Salah Recorder
  * @since 1.0.0
  *
  */
@@ -15,7 +15,6 @@
 // Include header
 get_header();
 
-var_dump($_POST);
 
 $cookie_name = 'user_status';
 if(!isset($_COOKIE[$cookie_name])) {

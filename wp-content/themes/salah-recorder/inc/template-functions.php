@@ -2,7 +2,8 @@
 /**
  * Functions which enhance the theme by hooking into WordPress
  *
- * @package Salah_Recorder
+ * @package Salah Recorder
+ * @since 1.0.0
  */
 
 /**

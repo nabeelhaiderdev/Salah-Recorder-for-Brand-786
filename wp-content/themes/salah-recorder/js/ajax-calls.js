@@ -6,7 +6,6 @@ jQuery(document).ready(function (jQuery) {
 		let board = '';
 
 		this_element_status = parseInt(jQuery(this).attr('data-toggle'));
-		console.log(this_element_status);
 		this_element_position = jQuery(this).data('position');
 
 		jQuery('.lds-roller').show();
@@ -27,8 +26,6 @@ jQuery(document).ready(function (jQuery) {
 					response_toggle = 0;
 				}
 				jQuery(".salah-click-element-button[data-position='" + response['element_position'] + "']").attr('data-toggle', response_toggle);
-				console.log(response['new_current_status']);
-				// jQuery(".salah-click-element-button[data-position='" + response['element_position'] + "']").attr('data-toggle', response['element_status']);
 				jQuery('.lds-roller').hide();
 			},
 			error: function (xhr, status, error) {

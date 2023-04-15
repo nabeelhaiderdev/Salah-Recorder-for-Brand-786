@@ -4,7 +4,8 @@
  *
  * @link https://codex.wordpress.org/Creating_an_Error_404_Page
  *
- * @package Salah_Recorder
+ * @package Salah Recorder
+ * @since 1.0.0
  */
 
 get_header();

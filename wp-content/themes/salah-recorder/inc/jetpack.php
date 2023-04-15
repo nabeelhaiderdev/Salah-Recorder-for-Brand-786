@@ -4,7 +4,8 @@
  *
  * @link https://jetpack.com/
  *
- * @package Salah_Recorder
+ * @package Salah Recorder
+ * @since 1.0.0
  */
 
 /**

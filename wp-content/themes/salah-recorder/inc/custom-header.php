@@ -8,7 +8,8 @@
  *
  * @link https://developer.wordpress.org/themes/functionality/custom-headers/
  *
- * @package Salah_Recorder
+ * @package Salah Recorder
+ * @since 1.0.0
  */
 
 /**

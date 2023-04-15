@@ -4,7 +4,8 @@
  *
  * @link https://developer.wordpress.org/themes/basics/template-hierarchy/#search-result
  *
- * @package Salah_Recorder
+ * @package Salah Recorder
+ * @since 1.0.0
  */
 
 get_header();

@@ -2,7 +2,8 @@
 /**
  * Salah Recorder Theme Customizer
  *
- * @package Salah_Recorder
+ * @package Salah Recorder
+ * @since 1.0.0
  */
 
 /**

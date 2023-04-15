@@ -4,7 +4,8 @@
  *
  * Eventually, some of the functionality here could be replaced by core features.
  *
- * @package Salah_Recorder
+ * @package Salah Recorder
+ * @since 1.0.0
  */
 
 if ( ! function_exists( 'salah_recorder_posted_on' ) ) :

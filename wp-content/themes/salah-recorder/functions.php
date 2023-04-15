@@ -4,7 +4,8 @@
  *
  * @link https://developer.wordpress.org/themes/basics/theme-functions/
  *
- * @package Salah_Recorder
+ * @package Salah Recorder
+ * @since 1.0.0
  */
 
 if ( ! defined( '_S_VERSION' ) ) {
@@ -208,9 +209,6 @@ require get_template_directory() . '/inc/ajax-calls.php';
 
 // add_action('init','create_account');
 function create_account(){
-	if ( isset( $_POST['submit_form'] ) ) {
-		var_dump("Her");
-	}
 	// Data passed by submitting the form
 	$user = ( isset($_POST['uname']) ? $_POST['uname'] : '' );
 	$pass = ( isset($_POST['upass']) ? $_POST['upass'] : '' );
@@ -231,9 +229,9 @@ function create_account(){
 					// $user->set_role( 'contributor' );
 
 					// Create a cookie to save that user has been registered so now we can display the login form instead of register form
-					// $cookie_name = "user_status";
-					// $cookie_value = "Registered";
-					// setcookie($cookie_name, $cookie_value, time() + (86400 * 30), "/"); 
+					$cookie_name = "user_status";
+					$cookie_value = "Registered";
+					setcookie($cookie_name, $cookie_value, time() + (86400 * 30), "/"); 
 					
 					// Redirect to new page
 					// wp_redirect( home_url() );
@@ -359,7 +357,7 @@ function create_account(){
 					error_log($error[0]);
 				}
 			}
-			var_dump($current_login_status->errors);
+			// var_dump($current_login_status->errors);
 		// }
 	}
 	}
@@ -448,11 +446,11 @@ function my_custom_login_check(){
 			$date1 = date('Y-m-d', $timestamp1);
 			$date2 = date('Y-m-d', $timestamp2);
 
-			var_dump($date1);
-			var_dump($date2);
+			// var_dump($date1);
+			// var_dump($date2);
 
 			if ($date1 != $date2) {
-				var_dump("Dates are not equal");
+				// var_dump("Dates are not equal");
 				// $wpdb->update(
 				// 	$table_name,
 				// 	array('salah_status' => 0),
@@ -487,7 +485,7 @@ function my_custom_login_check(){
 				}
 				$wpdb->print_error();
 			} else {
-				var_dump("Dates are equal");
+				// var_dump("Dates are equal");
 
 				$table_name = $wpdb->prefix . 'salahs';
 				$user_id = get_current_user_id();
@@ -533,48 +531,25 @@ function auto_redirect_after_logout(){
 *
 */
 
-// add_action("after_switch_theme", "salah_user_saved_values");
+add_action("after_switch_theme", "salah_user_saved_values");
 
-// function salah_user_saved_values() {
-
-
-// 	global $wpdb;
-// 	$charset_collate = $wpdb->get_charset_collate();
-// 	$table_name = $wpdb->prefix . 'salahs';
-
-// 	$sql = "CREATE TABLE IF NOT EXISTS $table_name (
-// 		id mediumint(9) NOT NULL AUTO_INCREMENT,
-// 		userid mediumint(9) NOT NULL,
-// 		salah_number smallint(5) NOT NULL,
-// 		salah_status BOOLEAN NOT NULL DEFAULT FALSE,
-// 		last_login VARCHAR(255),
-// 		UNIQUE KEY id (id)
-// 	) $charset_collate;";
-
-// 	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-// 	dbDelta( $sql );
-
-// }
+function salah_user_saved_values() {
 
 
-// function reset_salah_status_on_login( $user_id ) {
-// 	var_dump("noting here");
-// 	global $wpdb;
-// 	$table_name = $wpdb->prefix . 'salahs';
+	global $wpdb;
+	$charset_collate = $wpdb->get_charset_collate();
+	$table_name = $wpdb->prefix . 'salahs';
 
-// 	// Get current date in YYYY-MM-DD format
-// 	$current_date = date( 'Y-m-d' );
+	$sql = "CREATE TABLE IF NOT EXISTS $table_name (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		userid mediumint(9) NOT NULL,
+		salah_number smallint(5) NOT NULL,
+		salah_status BOOLEAN NOT NULL DEFAULT FALSE,
+		last_login VARCHAR(255),
+		UNIQUE KEY id (id)
+	) $charset_collate;";
 
-// 	// Build SQL query to update salah_status for each salah_number
-// 	$sql = "UPDATE $table_name SET salah_status = 0 WHERE userid = %d AND salah_number IN (
-// 				SELECT salah_number FROM $table_name
-// 				WHERE userid = %d AND last_login < DATE_SUB( %s, INTERVAL 1 DAY )
-// 			)";
-// 	$sql = $wpdb->prepare( $sql, $user_id, $user_id, $current_date );
+	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+	dbDelta( $sql );
 
-// 	// Run the SQL query
-// 	$wpdb->query( $sql );
-// }
-
-// // Call the reset_salah_status_on_login function when a user logs in
-// add_action( 'wp_login', 'reset_salah_status_on_login', 10, 1 );
+}
