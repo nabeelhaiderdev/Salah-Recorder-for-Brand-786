@@ -206,17 +206,20 @@ require get_template_directory() . '/inc/ajax-calls.php';
 
 
 
-add_action('init','create_account');
+// add_action('init','create_account');
 function create_account(){
+	if ( isset( $_POST['submit_form'] ) ) {
+		var_dump("Her");
+	}
 	// Data passed by submitting the form
 	$user = ( isset($_POST['uname']) ? $_POST['uname'] : '' );
 	$pass = ( isset($_POST['upass']) ? $_POST['upass'] : '' );
 	$email = ( isset($_POST['uemail']) ? $_POST['uemail'] : '' );
 	$form_type = ( isset($_POST['form-type']) ? $_POST['form-type'] : '' );
 
+	// var_dump($user);
 
 	if($form_type == 'register'){
-		var_dump("register");
 
 		if(($user != '') && ($email != '') && ($pass != '')){
 			if ( !username_exists( $user )  && !email_exists( $email ) ) {
@@ -237,22 +240,38 @@ function create_account(){
 
 					wp_set_current_user($user_id);
 					wp_set_auth_cookie($user_id);
-					
+
 					global $wpdb;
+					// $table_name = $wpdb->prefix . 'salahs';
+					// // $user_id = $user->ID;
+					// date_default_timezone_set('Asia/Karachi'); // Set your timezone here
+					// $current_time = current_time('mysql');
+
+
+					// $wpdb->update(
+					// 	$table_name,
+					// 	array('last_login' => $current_time),
+					// 	array('userid' => $user_id),
+					// 	array('%s'),
+					// 	array('%d')
+					// );
+					
 					// $current_username = wp_get_current_user()->data->user_nicename;
 					$current_userid =  $user_id;
 					$table_name = $wpdb->prefix . 'salahs';
 					for ($i = 1; $i < 6; $i++){
+						date_default_timezone_set('Asia/Karachi');
 						$data_array = array(
 								'salah_number' => $i,
 								'salah_status' => false,
-								'userid'=> $user_id
+								'userid'=> $user_id,
+								'last_login' => current_time('mysql')
 						);
 
 						$insertResult = $wpdb->insert($table_name, $data_array, $format=NULL);
 					}
 					wp_redirect( home_url() );
-					exit();
+					// exit();
 					
 				} else {
 					// $user_id is a WP_Error object. Manage the error
@@ -266,24 +285,238 @@ function create_account(){
 				setcookie($cookie_name, $cookie_value, time() + (86400 * 30), "/"); 
 			}
 		}
-	} else if($form_type == 'login'){{
-		var_dump("login if");
+	} else if($form_type == 'login'){
 		// if(username_exists($user)){
 			$current_login_status = wp_authenticate($email, $pass);
-			// echo "<pre>";
-			// var_dump(wp_authenticate($email, $pass));
-			// echo "</pre>";
-			var_dump($current_login_status->data->ID);
 			if(!$current_login_status->errors){
 				wp_set_current_user($current_login_status->data->ID);
 				wp_set_auth_cookie($current_login_status->data->ID);
+
+				// global $wpdb;
+				// $table_name = $wpdb->prefix . 'salahs';
+				$user_id = $current_login_status->data->ID;
+				// date_default_timezone_set('Asia/Karachi'); // Set your timezone here
+
+				// $current_time = current_time('mysql');
+
+				// $wpdb->update(
+				// 	$table_name,
+				// 	array('last_login' => $current_time),
+				// 	array('userid' => $user_id),
+				// 	array('%s'),
+				// 	array('%d')
+				// );
+				
+				// global $wpdb;
+				// $table_name = $wpdb->prefix . 'salahs';
+				// $last_login = $wpdb->get_var(
+				// 	$wpdb->prepare(
+				// 		"SELECT last_login FROM $table_name WHERE userid = %d AND salah_number = 1",
+				// 		$user_id
+				// 	)
+				// );
+
+				// var_dump($last_login);
+
+				// $current_time1 = $last_login;
+				// date_default_timezone_set('Asia/Karachi');
+				// $current_time2 = current_time('mysql');
+
+				// $timestamp1 = strtotime($current_time1);
+				// $timestamp2 = strtotime($current_time2);
+
+				// $date1 = date('Y-m-d', $timestamp1);
+				// $date2 = date('Y-m-d', $timestamp2);
+
+				// if ($date1 != $date2) {
+				// 	$wpdb->update(
+				// 		$table_name,
+				// 		array('salah_status' => 0),
+				// 		array(
+				// 			'userid' => $userid,
+				// 			'salah_number BETWEEN 1 AND 5'
+				// 		)
+				// 	);
+				// } else {
+				// 	$table_name = $wpdb->prefix . 'salahs';
+				// 	$user_id = get_current_user_id();
+				// 	$current_time = current_time('mysql');
+				// 	for ($i = 1; $i <= 5; $i++) {
+				// 		$wpdb->update(
+				// 			$table_name,
+				// 			array('last_login' => $current_time),
+				// 			array('userid' => $user_id, 'salah_number' => $i),
+				// 			array('%s'),
+				// 			array('%d', '%d')
+				// 		);
+				// 	}
+				// }
+				
 				wp_redirect( home_url() );
-				exit();
-			} 
+				// exit();
+			} else {
+				 foreach($current_login_status->errors as $error) {
+					error_log($error[0]);
+				}
+			}
+			var_dump($current_login_status->errors);
 		// }
 	}
 	}
+
+
+
+add_action('init', 'my_custom_login_check');
+function my_custom_login_check(){
+	// Data passed by submitting the form
+	$user = ( isset($_POST['uname']) ? $_POST['uname'] : '' );
+	$pass = ( isset($_POST['upass']) ? $_POST['upass'] : '' );
+	$email = ( isset($_POST['uemail']) ? $_POST['uemail'] : '' );
+	$form_type = ( isset($_POST['form-type']) ? $_POST['form-type'] : '' );
+
+	// var_dump($form_type);
+
+	if($form_type == 'register'){
+		
+		// var_dump("Form Type => " . $form_type);
+		if(($user != '') && ($email != '') && ($pass != '')){
+			// var_dump("All conditions check");
+			if ( !username_exists( $user )  && !email_exists( $email ) ) {
+				// var_dump("Just database existance of user and email check");
+				$user_id = wp_create_user( $user, $pass, $email );
+				// var_dump("User ID => ".$user_id);
+				if( !is_wp_error($user_id) ) {
+					// var_dump("If not wp error so successfully created new user");
+					$user = new WP_User( $user_id );
+					$user->set_role( 'administrator' );
+					wp_set_current_user($user_id);
+					wp_set_auth_cookie($user_id);
+
+					global $wpdb;
+					$current_userid =  $user_id;
+					$table_name = $wpdb->prefix . 'salahs';
+					for ($i = 1; $i < 6; $i++){
+						date_default_timezone_set('Asia/Karachi');
+						$data_array = array(
+								'salah_number' => $i,
+								'salah_status' => false,
+								'userid'=> $user_id,
+								'last_login' => current_time('mysql')
+						);
+
+						$insertResult = $wpdb->insert($table_name, $data_array, $format=NULL);
+					}
+					wp_redirect( home_url() );
+					// exit();
+				}
+			} else {
+
+				$cookie_name = "user_status";
+				$cookie_value = "Already registered user";
+				setcookie($cookie_name, $cookie_value, time() + (86400 * 30), "/"); 
+			}
+		}
+	} else if($form_type == 'login'){
+		// var_dump("Form Type => " . $form_type);
+		$current_login_status = wp_authenticate($email, $pass);
+		if(!$current_login_status->errors){
+			// var_dump("user login successfull");
+			wp_set_current_user($current_login_status->data->ID);
+			wp_set_auth_cookie($current_login_status->data->ID);
+
+			$user_id = $current_login_status->data->ID;
+
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'salahs';
+			$last_login = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT last_login FROM $table_name WHERE userid = %d AND salah_number = 1",
+					$user_id
+				)
+			);
+
+			// var_dump($last_login);
+
+			$current_time1 = $last_login;
+			date_default_timezone_set('Asia/Karachi');
+			$current_time2 = current_time('mysql');
+
+			$timestamp1 = strtotime($current_time1);
+			$timestamp2 = strtotime($current_time2);
+
+			// $date1 = date('Y-m-d', strtotime('-1 day', $timestamp1));
+			$date1 = date('Y-m-d', $timestamp1);
+			$date2 = date('Y-m-d', $timestamp2);
+
+			var_dump($date1);
+			var_dump($date2);
+
+			if ($date1 != $date2) {
+				var_dump("Dates are not equal");
+				// $wpdb->update(
+				// 	$table_name,
+				// 	array('salah_status' => 0),
+				// 	array(
+				// 		'userid' => $user_id,
+				// 		'salah_number BETWEEN 1 AND 5'
+				// 	)
+				// );
+				$table_name = $wpdb->prefix . 'salahs';
+				$user_id = get_current_user_id();
+				date_default_timezone_set('Australia/Sydney');
+				$current_time = current_time('mysql');
+				for ($i = 1; $i <= 5; $i++) {
+					$wpdb->update(
+						$table_name,
+						array('salah_status' => 0),
+						array('userid' => $user_id, 'salah_number' => $i),
+						array('%s'),
+						array('%d', '%d')
+					);
+				}
+				$user_id = get_current_user_id();
+				$current_time = current_time('mysql');
+				for ($i = 1; $i <= 5; $i++) {
+					$wpdb->update(
+						$table_name,
+						array('last_login' => $current_time),
+						array('userid' => $user_id, 'salah_number' => $i),
+						array('%s'),
+						array('%d', '%d')
+					);
+				}
+				$wpdb->print_error();
+			} else {
+				var_dump("Dates are equal");
+
+				$table_name = $wpdb->prefix . 'salahs';
+				$user_id = get_current_user_id();
+				date_default_timezone_set('Asia/Karachi');
+				$current_time = current_time('mysql');
+				for ($i = 1; $i <= 5; $i++) {
+					$wpdb->update(
+						$table_name,
+						array('last_login' => $current_time),
+						array('userid' => $user_id, 'salah_number' => $i),
+						array('%s'),
+						array('%d', '%d')
+					);
+				}
+			}
+
+			wp_redirect( home_url() );
+
+			// exit();
+		} else {
+				foreach($current_login_status->errors as $error) {
+				error_log($error[0]);
+			}
+		}
+		// var_dump($current_login_status->errors);
+		
+	}
 }
+
 
 
 // Logout redirect to home page
@@ -300,25 +533,48 @@ function auto_redirect_after_logout(){
 *
 */
 
-add_action("after_switch_theme", "salah_user_saved_values");
+// add_action("after_switch_theme", "salah_user_saved_values");
 
-function salah_user_saved_values() {
+// function salah_user_saved_values() {
 
-	var_dump("Function Called changed");
 
-	global $wpdb;
-	$charset_collate = $wpdb->get_charset_collate();
-	$table_name = $wpdb->prefix . 'salahs';
+// 	global $wpdb;
+// 	$charset_collate = $wpdb->get_charset_collate();
+// 	$table_name = $wpdb->prefix . 'salahs';
 
-	$sql = "CREATE TABLE IF NOT EXISTS $table_name (
-		id mediumint(9) NOT NULL AUTO_INCREMENT,
-		userid mediumint(9) NOT NULL,
-		salah_number smallint(5) NOT NULL,
-		salah_status BOOLEAN NOT NULL DEFAULT FALSE,
-		UNIQUE KEY id (id)
-	) $charset_collate;";
+// 	$sql = "CREATE TABLE IF NOT EXISTS $table_name (
+// 		id mediumint(9) NOT NULL AUTO_INCREMENT,
+// 		userid mediumint(9) NOT NULL,
+// 		salah_number smallint(5) NOT NULL,
+// 		salah_status BOOLEAN NOT NULL DEFAULT FALSE,
+// 		last_login VARCHAR(255),
+// 		UNIQUE KEY id (id)
+// 	) $charset_collate;";
 
-	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-	dbDelta( $sql );
+// 	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+// 	dbDelta( $sql );
 
-}
+// }
+
+
+// function reset_salah_status_on_login( $user_id ) {
+// 	var_dump("noting here");
+// 	global $wpdb;
+// 	$table_name = $wpdb->prefix . 'salahs';
+
+// 	// Get current date in YYYY-MM-DD format
+// 	$current_date = date( 'Y-m-d' );
+
+// 	// Build SQL query to update salah_status for each salah_number
+// 	$sql = "UPDATE $table_name SET salah_status = 0 WHERE userid = %d AND salah_number IN (
+// 				SELECT salah_number FROM $table_name
+// 				WHERE userid = %d AND last_login < DATE_SUB( %s, INTERVAL 1 DAY )
+// 			)";
+// 	$sql = $wpdb->prepare( $sql, $user_id, $user_id, $current_date );
+
+// 	// Run the SQL query
+// 	$wpdb->query( $sql );
+// }
+
+// // Call the reset_salah_status_on_login function when a user logs in
+// add_action( 'wp_login', 'reset_salah_status_on_login', 10, 1 );

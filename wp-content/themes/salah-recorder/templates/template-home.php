@@ -15,6 +15,7 @@
 // Include header
 get_header();
 
+var_dump($_POST);
 
 $cookie_name = 'user_status';
 if(!isset($_COOKIE[$cookie_name])) {
@@ -77,7 +78,7 @@ if($current_user_status == null){
 		<?php } ?>
 
 		<div id="container">
-			<form method="post" name="myForm">
+			<form method="post" name="myForm2">
 				<div class="single-input-container"><label for="uemail">Email</label> <input id="email" type="text"
 						name="uemail" /></div>
 				<div class="single-input-container"><label for="upass">Password</label> <input type="password"
